@@ -22,6 +22,8 @@ export default function Admin() {
   const [saving, setSaving] = useState(false);
   const [regsModal, setRegsModal] = useState(null);
   const [regs, setRegs] = useState([]);
+  const [feedbacksModal, setFeedbacksModal] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([]);
 
   useEffect(() => { if (!user || !isAdmin()) navigate('/login'); else fetchData(); }, [user]);
 
@@ -53,11 +55,24 @@ export default function Admin() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this event permanently?')) return;
-    try { await adminDeleteEvent(id); toast.success('Deleted'); fetchData(); } catch { toast.error('Delete failed'); }
+    try {
+      await adminDeleteEvent(id);
+      toast.success('Deleted');
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Delete failed');
+    }
   };
 
   const viewRegs = async (ev) => {
     try { const r = await adminGetRegistrations(ev.id); setRegs(r.data?.data || []); setRegsModal(ev); } catch { toast.error('Failed to load'); }
+  };
+  const viewFeedbacks = async (ev) => {
+    try {
+      const res = await getEventFeedbacks(ev.id);
+      setFeedbacks(res.data?.data || []);
+      setFeedbacksModal(ev);
+    } catch { toast.error('Failed to load feedback'); }
   };
 
   const exportExcel = async (ev) => {
@@ -141,6 +156,7 @@ export default function Admin() {
                   <td><div className="table-actions">
                     <button className="icon-btn" title="Edit" onClick={() => openEdit(e)}><Edit size={16} /></button>
                     <button className="icon-btn" title="Registrations" onClick={() => viewRegs(e)}><Users size={16} /></button>
+                    <button className="icon-btn" title="Feedback" onClick={() => viewFeedbacks(e)}><BarChart3 size={16} /></button>
                     <button className="icon-btn" title="Export" onClick={() => exportExcel(e)}><Download size={16} /></button>
                     <button className="icon-btn danger" title="Delete" onClick={() => handleDelete(e.id)}><Trash2 size={16} /></button>
                   </div></td>
@@ -201,6 +217,32 @@ export default function Admin() {
               <button className="btn btn-secondary btn-sm" onClick={() => exportExcel(regsModal)}><Download size={14} /> Export Excel</button>
               <button className="btn btn-ghost" onClick={() => setRegsModal(null)}>Close</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {feedbacksModal && (
+        <div className="modal-overlay" onClick={() => setFeedbacksModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 700 }}>
+            <div className="flex-between"><h3>Feedback: {feedbacksModal.title}</h3><button className="icon-btn" onClick={() => setFeedbacksModal(null)}><X size={20} /></button></div>
+            <p style={{ color: 'var(--slate)', marginBottom: 16 }}>{feedbacks.length} feedbacks received</p>
+            {feedbacks.length === 0 ? <p>No feedback yet.</p> : (
+              <div className="feedback-list" style={{ maxHeight: 400, overflowY: 'auto' }}>
+                {feedbacks.map(f => (
+                  <div key={f.id} style={{ padding: 16, borderBottom: '1px solid var(--border)', marginBottom: 8 }}>
+                    <div className="flex-between">
+                      <span style={{ fontWeight: 600 }}>{f.user?.fullName}</span>
+                      <div className="stars-sm">
+                        {[1,2,3,4,5].map(s => <span key={s} style={{ color: s <= f.rating ? 'var(--amber)' : '#ddd' }}>★</span>)}
+                      </div>
+                    </div>
+                    <p style={{ marginTop: 8, fontSize: 14, color: 'var(--charcoal)' }}>{f.comment || 'No comment provided'}</p>
+                    <small style={{ color: 'var(--slate)' }}>{new Date(f.createdAt).toLocaleDateString()}</small>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="modal-footer"><button className="btn btn-ghost" onClick={() => setFeedbacksModal(null)}>Close</button></div>
           </div>
         </div>
       )}

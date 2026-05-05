@@ -4,8 +4,11 @@ import com.veltech.events.entity.Event;
 import com.veltech.events.entity.Event.EventStatus;
 import com.veltech.events.exception.ResourceNotFoundException;
 import com.veltech.events.repository.EventRepository;
+import com.veltech.events.repository.FeedbackRepository;
+import com.veltech.events.repository.RegistrationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -14,6 +17,8 @@ import java.util.*;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final RegistrationRepository registrationRepository;
+    private final FeedbackRepository feedbackRepository;
 
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
@@ -70,8 +75,11 @@ public class EventService {
         return eventRepository.save(event);
     }
 
+    @Transactional
     public void deleteEvent(Long id) {
         Event event = getEventById(id);
+        registrationRepository.deleteByEventId(id);
+        feedbackRepository.deleteByEventId(id);
         eventRepository.delete(event);
     }
 

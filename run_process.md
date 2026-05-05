@@ -1,6 +1,6 @@
 ## mySQL db: from cmd >
  "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p
-##                        enter password: root@2128
+##                        enter password:*********
 
 ## to run Backend: direct path to project backend > 
 & "C:\Program Files\Apache\Maven\apache-maven-3.9.15\bin\mvn.cmd" spring-boot:run

@@ -2,9 +2,11 @@ package com.veltech.events.repository;
 
 import com.veltech.events.entity.Feedback;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,4 +26,8 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
     @Query("SELECT COUNT(f) FROM Feedback f WHERE f.event.id = :eventId")
     long countByEventId(@Param("eventId") Long eventId);
+
+    @Modifying
+    @Transactional
+    void deleteByEventId(Long eventId);
 }
